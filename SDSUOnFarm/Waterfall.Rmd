@@ -1,0 +1,44 @@
+---
+title: "Waterfall Plots, SDSU On Farm"
+author: "Peter Claussen"
+date: "July 8, 2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+See ST Waterfall Plots for details of analysis methods.
+
+
+```{r,echo=FALSE}
+source('../R/WaterfallPlot.R')
+```
+
+
+```{r}
+means <- read.csv("./SDOnFarmFungicide.csv",header=TRUE)
+```
+
+
+
+```{r,fig.width=12,fig.height=5}
+par(mfrow=c(1,2))
+WaterfallPlot(means$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(means$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(means$Difference,error='nonpar',basis='Difference',Groups=means$Product)
+WaterfallPlot(means$Difference, error='nonpar',basis='Difference',Groups=means$Year)
+WaterfallPlot(means$Difference, error='nonpar',basis='Difference',Groups=means$Zone)
+```
+
+```{r}
+hist(means$Difference)
+qqnorm(means$Difference)
+plot(ecdf(means$Difference))
+```
+
+```{r}
+unique(means$Product)
+```

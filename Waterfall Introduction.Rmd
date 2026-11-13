@@ -1,0 +1,146 @@
+---
+title: "Waterfall Plots Introduction"
+author: "Peter Claussen"
+date: "9/4/2021"
+output:
+  pdf_document: default
+  html_document: default
+bibliography: Waterfall.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,echo=FALSE}
+source('./R/WaterfallPlot.R')
+source('./R/HtHWaterfall.R')
+```
+
+
+# Introduction
+
+Waterfall plots are a form of ordered bar charts, most commonly described in the literature for use in oncology [@gillespie-2012; @shao-10-2014; @kim-05-2019] but widely used in other industries  [@pandya-2012]. Waterfall plots share features with Cleveland dot plots [@cleveland-11-1984].
+
+Most commonly, water fall plots are represent comparative data. Each observation represents a degree of change, where a positive value represents improvement and negative values represent decline. The individual observations are sorted and plotted as bar graphs, most commonly with the largest positive values on the left side of the graph, with values steadily decreasing (or, at least, non-increasing) from left to right. This produces a waterfall-like visual effect. The point at which values shift from positive to negative can be easily identified and treatments that are more effective will show this shift further to the right and less effective treatments.
+
+We wish to explore the use of waterfall plots in agronomic contexts and to develop a statistic that describes the point on the waterfall plot where bar values switch sign. We refer to this point as the *win-rate*. We further wish to develop confidence bounds on *win-rate* that can be used to identify agronomic products or practices that are most likely to produce a positive effect for end-users (e.g. farmers). 
+
+Win rate itself can be presented as a simple statistic, but there has been little written on how to produce confidence intervals on this value. Most commonly, we wish to determine if a confidence interval on with rate cotains a break-even value (i.e. 50% win rate, implying two practices or products are agronomically equivalent). Thus, the focus of this project would be to compare methods for computing confidence intervals for values presented in a waterfall plot.
+
+## Examples
+
+We will use two motivating examples in this development. These will illustrate extremes in the degree of uniformity of data that may be represented using waterfall plots, and to illustrate how waterfall plots may be used to make practical decisions about agronomic practices.
+
+### Variety Testing
+
+In general, crop varieties have limited useful lifespans. Varieties are commonly bred to be very high yielding in specific environments, but that comes at a compromise with vigor over a more broad range of environmental conditions. Frequently, for example, varieties are developed with resistant to the dominant fungal strains endemic to a growing region. Over time, strains evolve and varieties become susceptable to these new strains. Thus, new varieties (with resistance to newer fungal pathogens) are made available to growers to replace older and less resistant strains. In other cases, newer varieties are developed that are simpler better yielding than older varieties.
+
+To assist in targetted variety development and to allow growers to make informed choices about the relative merits of newer versus older varieties, regional performance nursery programs have been developed. 
+
+Briefly, each year different crop breeders select among their top lines for inclusion performance nurseries. In this example, we have selected data from the Winter Wheat Northern Plains Regional Performance Nursery [NRPN](https://www.ars.usda.gov/plains-area/lincoln-ne/wheat-sorghum-and-forage-research/docs/hard-winter-wheat-regional-nursery-program/research/), from the years 2010 to 2014, inclusive. 
+
+Each year trials generally consist of 50 variaties (roughly 6-8 lines per collaborating breeding gropu) tested at 15+ locations in Nebraska, Minnesota, South Dakota, North Dakota, and Alberta, Canada. Each trial follows identical experimental designs - randomized complete block trials in four replicates. Trial means are reported for each location using standard statistical methods. There may be many agronomic characteristics reported for each location; we will focus on yield (kg/ha) for our development of waterfall plots.
+
+Trials are uniform within each year with respect to experimental design and treatment structure, but different varieties may be entered for each trial year. There will typically be one or two long-term check varieties that are retained from year to year to allow better assessment of yield gain over time. We find for the trials over 2010-2015 only 4 varieties were tested, namely Jerry, Kharkof, Overland and Wesley.
+
+```{r,echo=FALSE}
+#see NRPN.Rmd
+means2010 <- read.csv("./NRPN/2010NRPN/Yield-Table 1.csv",header=TRUE)
+names(means2010)[-(1:2)] <-  paste(names(means2010)[-(1:2)],'2010')
+means2011 <- read.csv("./NRPN/2011NRPN/Yield-Table 1.csv",header=TRUE)
+names(means2011)[-(1:2)] <-  paste(names(means2011)[-(1:2)],'2011')
+means2012 <- read.csv("./NRPN/2012NRPN/Yields-Table 1.csv",header=TRUE)
+names(means2012)[-(1:2)] <-  paste(names(means2012)[-(1:2)],'2012')
+means2013 <- read.csv("./NRPN/2013NRPN/Yield-Table 1.csv",header=TRUE)
+names(means2013)[-(1:2)] <-  paste(names(means2013)[-(1:2)],'2013')
+means2014 <- read.csv("./NRPN/2014NRPN/Yield-Table 1.csv",header=TRUE)
+names(means2014)[-(1:2)] <-  paste(names(means2014)[-(1:2)],'2014')
+means <- merge(means2010[,-1],means2011[,-1],by='Line')
+means <- merge(means,means2012[,-1],by='Line')
+means <- merge(means,means2013[,-1],by='Line')
+means <- merge(means,means2014[,-1],by='Line')
+entries <- means[,1]
+means <- t(means[,-1])
+colnames(means) <- entries
+trt.means <- colMeans(means,na.rm=TRUE)
+names(trt.means) <- entries
+best <- which(rank(trt.means)==max(rank(trt.means)))
+second <- which(rank(trt.means)==max(rank(trt.means))-1)
+```
+
+```{r,echo=FALSE,results='as-is',fig.cap='Yield averages for selected varieties in the NRPN, 2010-2015'}
+knitr::kable(trt.means)
+```
+
+Kharkof is a long-term check, first release in 1870, and is clearly a low-yielding variety by current standards. Overland and Wesley are newer varieties, released in 2007 and 1998, respectively. Based on yield means alone, it may be clear that Overland would be the preferred variety for wheat growers in the northern plains region.
+
+The yield values in Table 1 are averaged over a variety of conditions, while farmers make decisions strictly on their local fields. A more relevant question than "what is difference in yield between Overland and Wesley" may be, for the growers, the question of 'How often did Overland outperform Wesley'? The answer to this question can be visualized with a waterfall plot.
+
+
+```{r,echo=FALSE, fig.width=10,fig.height=6,fig.cap='Waterfall plot comparing Overland and Wesley'}
+HtHWaterfall(means,best,second,basis='Difference')
+```
+
+In this plot, each bar represents are trial location-year, and the magnitude of the bar represents the difference in yield between Overland and Wesley.
+
+```{r,eval=FALSE,echo=FALSE, fig.width=10,fig.height=6}
+HtHWaterfall(means,best,1,basis='Difference')
+```
+
+### On-farm Strip Trials
+
+The introduction of GPS and yield monitor enabled combine harvesters has increased availability of agronomic data and the increase in farmer-level participation in product testing. One common form of participatory research is the on-farm strip trial. 
+
+Briefly, farmers will apply test product (or change agronomic practice) in portions, typically strips, of their production fields. The remainder of the field will be unchanged or will be farmed using standard practices. Product is usually applied using GPS enabled equipment, and the fields will be harvested using GPS-enabled harvesters. This allows scientists to determine yield rates in treated and untreated portions of the field. For each field, a yield difference due to treatment is then calculated. Over many fields, scientists hope to obtain information about the effectiveness under real-world conditions. Trials are commonly entered into databases that can be queried by farmers to aid in decison making. These databases will have varying degrees of detail about the product tested, along with other geographical features such as location, soil type and rainfall.
+
+For this example, we have obtained data from the [Iowa Soybean Association Replicated Strip Trial Database](https://www.iasoybeans.com/research/results/replicated-strip-trials). We use for an motivating example the subset of trials involving the fungicide 'Headline' as a test treatment. The product was applied to both corn and soybeans, so we cannot assume the observations are from identical distributions.
+
+```{r,echo=FALSE,include=FALSE}
+iowa <- read.csv("./IowaOnFarm/IowaOnFarmTrials.csv",header=TRUE)
+idx <- which(names(iowa)=='Avg..Yield.Difference.bu.acre')
+names(iowa)[idx] <- 'Difference'
+
+trial.counts <- tapply(iowa$Difference,iowa$Trial.Detail,length)
+ordered <- trial.counts[order(trial.counts,decreasing=TRUE)]
+ordered[1:10]
+
+type.counts <- tapply(iowa$Difference,iowa$Trial.Type,length)
+type.ordered <- type.counts[order(type.counts,decreasing=TRUE)]
+type.ordered[1:10]
+
+Headline <- iowa[iowa$Trial.Detail==names(ordered)[1],]
+aggregate(Difference ~ Crop,data=Headline,length)
+```
+
+
+```{r,echo=FALSE, fig.width=10,fig.height=6}
+WaterfallPlot(Headline$Difference,basis='Difference')
+```
+
+### South Dakota On-Farm Trials 
+
+The South Dakota Soybean Association supports on-farm strip trials similar to the trials registered in the Iowa On Farm network. However, in the analysis, the data in the [South Dakota Soybean On Farm](https://onfarmresearch.sdsoybean.org) database include analysis of single fields divided into different yield production zones. Thus, these data cannot be assumed to be independent. 
+
+Because the South Dakota program is newer than the Iowa program, there have been fewer trials entered into the database. For this motivating example, we include all fungicide trials; these data include a number of different products. This allows the waterfall plot to address the general question "How often will fungicide application improve yield", Therefore, in addition to lacking independence, these data cannot be assumed to be identically distributed.
+
+```{r,echo=FALSE,include=FALSE}
+means <- read.csv("./SDSUOnFarm/SDOnFarmFungicide.csv",header=TRUE)
+aggregate(Difference ~ Name,data=means,length)
+```
+
+```{r,echo=FALSE, fig.width=10,fig.height=6}
+WaterfallPlot(means$Difference,basis='Difference')
+```
+
+
+<!-- Ordered bar plot/chart -->
+
+<!-- https://cran.r-project.org/web/packages/ggpubr/readme/README.html -->
+<!-- https://www.jmp.com/support/help/en/16.1/index.shtml#page/jmp/example-of-an-ordered-bar-chart.shtml -->
+
+<!-- Cleveland Dot Plots -->
+
+# Bibliography
+
+

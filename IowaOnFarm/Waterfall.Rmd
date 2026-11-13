@@ -1,0 +1,350 @@
+---
+title: "Waterfall Plots, Iowa Soybean Association"
+author: "Peter Claussen"
+date: "July 28, 2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+See ST Waterfall Plots for details of analysis methods.
+
+
+```{r,echo=FALSE}
+source('../R/WaterfallPlot.R')
+```
+
+# Trial Detail
+
+```{r}
+iowa <- read.csv("./IowaOnFarmTrials.csv",header=TRUE)
+idx <- which(names(iowa)=='Avg..Yield.Difference.bu.acre')
+names(iowa)[idx] <- 'Difference'
+
+trial.counts <- tapply(iowa$Difference,iowa$Trial.Detail,length)
+ordered <- trial.counts[order(trial.counts,decreasing=TRUE)]
+ordered[1:10]
+```
+
+```{r}
+type.counts <- tapply(iowa$Difference,iowa$Trial.Type,length)
+type.ordered <- type.counts[order(type.counts,decreasing=TRUE)]
+type.ordered[1:10]
+```
+
+
+
+## Headline
+
+```{r}
+Headline <- iowa[iowa$Trial.Detail==names(ordered)[1],]
+```
+
+
+```{r,fig.width=12,fig.height=5}
+par(mfrow=c(1,2))
+WaterfallPlot(Headline$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Headline$Difference, error='ecdf',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Headline$Difference,error='nonpar',basis='Difference',Groups=Headline$Crop)
+WaterfallPlot(Headline$Difference, error='nonpar',basis='Difference',Groups=Headline$Year)
+WaterfallPlot(Headline$Difference, error='nonpar',basis='Difference',Groups=Headline$Landform.Region)
+WaterfallPlot(Headline$Difference, error='nonpar',basis='Difference',Groups=Headline$Crop.District)
+```
+
+```{r}
+#hist(Headline$Difference)
+#qqnorm(Headline$Difference)
+plot(ecdf(Headline$Difference))
+```
+
+## High N Rate vs Low N Rate
+
+```{r,fig.width=12,fig.height=5}
+NRate <- iowa[iowa$Trial.Detail==names(ordered)[2],]
+par(mfrow=c(1,2))
+WaterfallPlot(NRate$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(NRate$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(NRate$Difference,error='nonpar',basis='Difference',Groups=NRate$Crop)
+```
+
+```{r}
+#hist(NRate$Difference)
+#qqnorm(NRate$Difference)
+plot(ecdf(NRate$Difference))
+```
+
+## High vs Low Plant Population
+
+```{r,fig.width=12,fig.height=5}
+PlantPopulation <- iowa[iowa$Trial.Detail==names(ordered)[3],]
+par(mfrow=c(1,2))
+WaterfallPlot(PlantPopulation$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(PlantPopulation$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(PlantPopulation$Difference,error='nonpar',basis='Difference',Groups=PlantPopulation$Crop)
+```
+
+## anure + N vs Manure
+
+```{r,fig.width=12,fig.height=5}
+Manure <- iowa[iowa$Trial.Detail==names(ordered)[4],]
+par(mfrow=c(1,2))
+WaterfallPlot(Manure$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Manure$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Manure$Difference,error='nonpar',basis='Difference',Groups=Manure$Crop)
+```
+
+```{r}
+hist(Manure$Difference)
+qqnorm(Manure$Difference)
+plot(ecdf(Manure$Difference))
+```
+
+## Stratego YLD vs Untreated and        Stratego vs Untreated 
+
+```{r,fig.width=12,fig.height=5}
+Stratego <- iowa[iowa$Trial.Detail==names(ordered)[6],]
+StrategoYLD <- iowa[iowa$Trial.Detail==names(ordered)[5],]
+par(mfrow=c(1,2))
+WaterfallPlot(Stratego$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(StrategoYLD$Difference, error='nonpar',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=5}
+Stratego <- iowa[iowa$Trial.Detail==names(ordered)[5] | iowa$Trial.Detail==names(ordered)[6],]
+par(mfrow=c(1,2))
+WaterfallPlot(Stratego$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Stratego$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Stratego$Difference,error='nonpar',basis='Difference',Groups=Stratego$Crop)
+WaterfallPlot(Stratego$Difference,error='nonpar',basis='Difference',Groups=Stratego$Trial.Detail)
+```
+
+## Fall NH3 vs Spring NH3 
+
+```{r,fig.width=12,fig.height=5}
+NH3 <- iowa[iowa$Trial.Detail==names(ordered)[7],]
+par(mfrow=c(1,2))
+WaterfallPlot(NH3$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(NH3$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(NH3$Difference,error='nonpar',basis='Difference',Groups=NH3$Crop)
+```
+
+## SuperCal SO4 vs Untreated 
+
+                          
+```{r,fig.width=12,fig.height=5}
+SO4 <- iowa[iowa$Trial.Detail==names(ordered)[8],]
+par(mfrow=c(1,2))
+WaterfallPlot(SO4$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(SO4$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(SO4$Difference,error='nonpar',basis='Difference',Groups=SO4$Crop)
+```
+
+## Instinct vs Untreated
+
+```{r,fig.width=12,fig.height=5}
+Instinct <- iowa[iowa$Trial.Detail==names(ordered)[9],]
+par(mfrow=c(1,2))
+WaterfallPlot(Instinct$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Instinct$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Instinct$Difference,error='nonpar',basis='Difference',Groups=Instinct$Crop)
+```
+
+## Priaxor vs Untreated 
+```{r,fig.width=12,fig.height=5}
+Priaxor <- iowa[iowa$Trial.Detail==names(ordered)[10],]
+par(mfrow=c(1,2))
+WaterfallPlot(Priaxor$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Priaxor$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Priaxor$Difference,error='nonpar',basis='Difference',Groups=Priaxor$Crop)
+```
+
+
+```{r,fig.width=10,fig.height=10}
+par(mfrow=c(3,3))
+WaterfallPlot(Headline$Difference,title=names(ordered)[1],
+              error='nonpar',basis='Difference',Groups=Headline$Crop)
+WaterfallPlot(NRate$Difference,title=names(ordered)[2],
+              error='nonpar',basis='Difference',Groups=NRate$Crop)
+WaterfallPlot(PlantPopulation$Difference,title=names(ordered)[3],
+              error='nonpar',basis='Difference',Groups=PlantPopulation$Crop)
+WaterfallPlot(Manure$Difference,title=names(ordered)[4],
+              error='nonpar',basis='Difference',Groups=Manure$Crop)
+WaterfallPlot(Stratego$Difference,title='Stratego (Combined)',
+              error='nonpar',basis='Difference',Groups=Stratego$Crop)
+WaterfallPlot(NH3$Difference,title=names(ordered)[7],
+              error='nonpar',basis='Difference',Groups=NH3$Crop)
+WaterfallPlot(SO4$Difference,title=names(ordered)[8],
+              error='nonpar',basis='Difference',Groups=SO4$Crop)
+WaterfallPlot(Instinct$Difference,title=names(ordered)[9],
+              error='nonpar',basis='Difference',Groups=Instinct$Crop)
+WaterfallPlot(Priaxor$Difference,title=names(ordered)[10],
+              error='nonpar',basis='Difference',Groups=Priaxor$Crop)
+```
+
+
+\pagebreak
+
+# Trial Type
+
+```{r}
+type.counts <- tapply(iowa$Difference,iowa$Trial.Type,length)
+ordered <- type.counts[order(type.counts,decreasing=TRUE)]
+ordered[1:10]
+```
+
+
+## Crop Protection - Fungicide Plant 
+
+```{r,fig.width=12,fig.height=5}
+Fungicide <- iowa[iowa$Trial.Type==names(ordered)[1],]
+par(mfrow=c(1,2))
+WaterfallPlot(Fungicide$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Fungicide$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Fungicide$Difference,error='nonpar',basis='Difference',Groups=Fungicide$Crop)
+```
+
+## Nutrition - Nitrogen Rate 
+
+```{r,fig.width=12,fig.height=5}
+Nutrition <- iowa[iowa$Trial.Type==names(ordered)[2],]
+par(mfrow=c(1,2))
+WaterfallPlot(Nutrition$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Nutrition$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Nutrition$Difference,error='nonpar',basis='Difference',Groups=Nutrition$Crop)
+```
+
+## Crop Management - Population 
+
+```{r,fig.width=12,fig.height=5}
+Population <- iowa[iowa$Trial.Type==names(ordered)[3],]
+par(mfrow=c(1,2))
+WaterfallPlot(Population$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Population$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Population$Difference,error='nonpar',basis='Difference',Groups=Population$Crop)
+```
+
+## Stimulant, PGR, or Biological 
+
+```{r,fig.width=12,fig.height=5}
+Stimulant <- iowa[iowa$Trial.Type==names(ordered)[4],]
+par(mfrow=c(1,2))
+WaterfallPlot(Stimulant$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Stimulant$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Stimulant$Difference,error='nonpar',basis='Difference',Groups=Stimulant$Crop)
+```
+
+
+## Plant Nutrition - Fertilizer  
+```{r,fig.width=12,fig.height=5}
+Fertilizer <- iowa[iowa$Trial.Type==names(ordered)[5],]
+par(mfrow=c(1,2))
+WaterfallPlot(Fertilizer$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Fertilizer$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Fertilizer$Difference,error='nonpar',basis='Difference',Groups=Fertilizer$Crop)
+```
+
+## Plant Nutrition - Stabilizer or Additive 
+
+```{r,fig.width=12,fig.height=5}
+Stabilizer <- iowa[iowa$Trial.Type==names(ordered)[6],]
+par(mfrow=c(1,2))
+WaterfallPlot(Stabilizer$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Stabilizer$Difference, error='normal',basis='Difference')
+```
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Stabilizer$Difference,error='nonpar',basis='Difference',Groups=Stabilizer$Crop)
+```
+
+
+## Crop Protection - Seed Treatment 
+
+```{r,fig.width=12,fig.height=5}
+SeedTreatment <- iowa[iowa$Trial.Type==names(ordered)[7],]
+par(mfrow=c(1,2))
+WaterfallPlot(SeedTreatment$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(SeedTreatment$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(SeedTreatment$Difference,error='nonpar',basis='Difference',Groups=SeedTreatment$Crop)
+```
+
+## Cover Crop 
+
+```{r,fig.width=12,fig.height=5}
+CoverCrop <- iowa[iowa$Trial.Type==names(ordered)[8],]
+par(mfrow=c(1,2))
+WaterfallPlot(CoverCrop$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(CoverCrop$Difference, error='normal',basis='Difference')
+```
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(CoverCrop$Difference,error='nonpar',basis='Difference',Groups=CoverCrop$Crop)
+```
+
+## Plant Nutrition - Manure + Nitrogen
+
+```{r,fig.width=12,fig.height=5}
+ManureNitrogen <- iowa[iowa$Trial.Type==names(ordered)[9],]
+par(mfrow=c(1,2))
+WaterfallPlot(ManureNitrogen$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(ManureNitrogen$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(ManureNitrogen$Difference,error='nonpar',basis='Difference',Groups=ManureNitrogen$Crop)
+```
+
+## Insecticide
+
+```{r,fig.width=12,fig.height=5}
+Insecticide <- iowa[iowa$Trial.Type==names(ordered)[10],]
+par(mfrow=c(1,2))
+WaterfallPlot(Insecticide$Difference,error='nonpar',basis='Difference')
+WaterfallPlot(Insecticide$Difference, error='normal',basis='Difference')
+```
+
+```{r,fig.width=12,fig.height=7}
+WaterfallPlot(Insecticide$Difference,error='nonpar',basis='Difference',Groups=Insecticide$Crop)
+```

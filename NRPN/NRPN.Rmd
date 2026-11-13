@@ -1,0 +1,86 @@
+---
+title: "NRPN Waterfall Plots"
+author: "Peter Claussen"
+date: "July 28, 2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+See ST Waterfall Plots for details of analysis methods.
+
+```{r,echo=FALSE}
+source('../R/WaterfallPlot.R')
+source('../R/HtHWaterfall.R')
+```
+
+
+# NRPN data
+
+```{r}
+means2010 <- read.csv("./2010NRPN/Yield-Table 1.csv",header=TRUE)
+names(means2010)[-(1:2)] <-  paste(names(means2010)[-(1:2)],'2010')
+means2011 <- read.csv("./2011NRPN/Yield-Table 1.csv",header=TRUE)
+names(means2011)[-(1:2)] <-  paste(names(means2011)[-(1:2)],'2011')
+means2012 <- read.csv("./2012NRPN/Yields-Table 1.csv",header=TRUE)
+names(means2012)[-(1:2)] <-  paste(names(means2012)[-(1:2)],'2012')
+means2013 <- read.csv("./2013NRPN/Yield-Table 1.csv",header=TRUE)
+names(means2013)[-(1:2)] <-  paste(names(means2013)[-(1:2)],'2013')
+means2014 <- read.csv("./2014NRPN/Yield-Table 1.csv",header=TRUE)
+names(means2014)[-(1:2)] <-  paste(names(means2014)[-(1:2)],'2014')
+```
+
+```{r}
+means <- merge(means2010[,-1],means2011[,-1],by='Line')
+unique(means$Line)
+dim(means)
+means <- merge(means,means2012[,-1],by='Line')
+unique(means$Line)
+dim(means)
+means <- merge(means,means2013[,-1],by='Line')
+unique(means$Line)
+dim(means)
+means <- merge(means,means2014[,-1],by='Line')
+unique(means$Line)
+dim(means)
+```
+
+```{r}
+entries <- means[,1]
+means <- t(means[,-1])
+colnames(means) <- entries
+```
+
+```{r}
+trt.means <- colMeans(means,na.rm=TRUE)
+
+best <- which(rank(trt.means)==max(rank(trt.means)))
+second <- which(rank(trt.means)==max(rank(trt.means))-1)
+worst <- which(rank(trt.means)==min(rank(trt.means)))
+```
+
+
+## Best vs Second best
+
+
+```{r,fig.width=12,fig.height=5}
+par(mfrow=c(1,2))
+HtHWaterfall(means,best,second, error='nonpar',basis='Difference')
+HtHWaterfall(means,best,second, error='normal',basis='Difference')
+```
+
+
+## Best vs Worst
+```{r,fig.width=12,fig.height=5}
+par(mfrow=c(1,2))
+HtHWaterfall(means,best,worst, error='nonpar',basis='Difference')
+HtHWaterfall(means,best,worst, error='normal',basis='Difference')
+```
+
+## Most Similar Pair
+
+```{r,fig.width=12,fig.height=5}
+par(mfrow=c(1,2))
+HtHWaterfall(means,1,4, error='nonpar',basis='Difference')
+HtHWaterfall(means,1,4, error='normal',basis='Difference')
+```
